@@ -16,6 +16,7 @@ byte colPins[COLS] = {5,4,3,2};
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 char* password = "5938"; 
+char nova_senha[4];
 char senha[4] = {'5','9','3','8'}; // cria um vetor char de nome senha de 4 colunas com caracteres definidos
 
 const int pinoPIR = 1; //PINO DIGITAL UTILIZADO PELO SENSOR DE PRESENÇA
@@ -45,28 +46,70 @@ void loop(){
   lcd.print("OFF"); // indica que o alarme está desabiitado no display
 
   char tecla_pressionada = keypad.getKey(); //  verifica se alguma tecla foi pressionada
-    if(tecla_pressionada == 'A'){
+ //código troca de senha aqui
+ if(tecla_pressionada == 'A'){
+    lcd.clear();
+    lcd.setCursor(0, 0); 
+    lcd.print("Troca de senha");  // Indica no display que a senha será trocada
+    lcd.setCursor(0, 1); 
+    lcd.print("Senha atual: ");   // Solicita a senha atual
+
+    i = 0;  // Reseta o índice para garantir que comece do início
+    while (i < 4) {
+      tecla_pressionada = keypad.getKey();  // Captura a tecla pressionada
+
+      if (tecla_pressionada) {
+        vetor[i] = tecla_pressionada;  // Armazena a tecla pressionada no vetor
+        lcd.setCursor(i + 12, 1);  // Mostra a tecla no LCD (após "Senha atual: ")
+        lcd.print("*");  // Exibe um asterisco para ocultar a senha
+        i++;  // Incrementa o contador para o próximo dígito
+      }
+    }
+
+    // Verifica se a senha digitada corresponde à senha armazenada
+    if (vetor[0] == senha[0] && vetor[1] == senha[1] && vetor[2] == senha[2] && vetor[3] == senha[3]) {
       lcd.clear();
-      lcd.setCursor(0,0); lcd.print("Troca de senha"); // indica no display que a senha será trocada
-      lcd.setCursor(0,1); lcd.print("Senha atual: "); // indica no display que o alarme está ativo
-      while ( tecla_pressionada != 'B'){
-      tecla_pressionada = keypad.getKey(); // verifica se alguma tecla foi pressionada
-       
-       if (tecla_pressionada){ // se alguma tecla for pressionada executa abaixo
-        vetor[i] = tecla_pressionada; // armazena no vetor[4] as teclas pressionadas
-        lcd.clear();
-        lcd.setCursor(i,1); lcd.print(tecla_pressionada); // indica no display a tecla pressionada
-        i++; // contador para definir que a senha seja de 4 digitos
-          if(i==4){ // se o ultimo digito da senha for pressionado, executa abaixo
-            if(vetor[0] == senha[0] && vetor[1] == senha[1] && vetor[2] == senha[2] && vetor[3] == senha[3]){ // compara o vetor das teclas pressionadas com a senha pré definida
-                lcd.setCursor(7,1); lcd.print("Digite B para nova senha"); delay(1000); // indica que a senha digitada foi correta
-                if(tecla_pressionada != 'B')
-                { return 0; }
-                i=0; // zera o contador
-                return 0;
-            }
-          }
-      } } }
+      lcd.setCursor(0, 0);
+      lcd.print("Senha correta");
+      delay(1000);
+
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Nova senha:");  // Solicita nova senha
+      i = 0;
+      
+      while (i < 4) {
+        tecla_pressionada = keypad.getKey();  // Captura nova tecla pressionada
+
+        if (tecla_pressionada) {
+          nova_senha[i] = tecla_pressionada;  // Armazena a nova senha
+          lcd.setCursor(i + 12, 1);  // Exibe a nova senha com asterisco
+          lcd.print("*");
+          i++;
+        }
+      }
+
+      // Atualiza a senha com a nova
+      for (int j = 0; j < 4; j++) {
+        senha[j] = nova_senha[j];
+      }
+
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Senha alterada!");  // Confirma a alteração
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0,0); 
+      lcd.print("ALARME");
+      i = 0;
+    } else {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Senha incorreta!");
+      delay(2000);
+      lcd.clear();
+    }
+  }
      if (tecla_pressionada == '#' ) { // se # for pressionado executa o codigo abaixo
         lcd.setCursor(8,0); lcd.print("ON "); // indica no display que o alarme está ativo
         digitalWrite (pinoBUZZER, HIGH); delay(50);  // sonorização
@@ -85,7 +128,8 @@ void loop(){
         digitalWrite (pinoBUZZER, LOW); delay(100); // Alarme
         tecla_pressionada = keypad.getKey(); // verifica se alguma tecla foi pressionada
         //******************************************SENHA
-       if (tecla_pressionada){ // se alguma tecla for pressionada executa abaixo
+       if (tecla_pressionada){ 
+        // se alguma tecla for pressionada executa abaixo
         vetor[i] = tecla_pressionada; // armazena no vetor[4] as teclas pressionadas
         lcd.setCursor(i,1); lcd.print(tecla_pressionada); // indica no display a tecla pressionada
         i++; // contador para definir que a senha seja de 4 digitos
